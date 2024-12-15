@@ -1,0 +1,25 @@
+{
+    "files.associations": {
+        "*.ejs": "html",
+        "lcd.h": "c",
+        "font5x7.h": "c",
+        "seven_segment.h": "c",
+        "song.h": "c",
+        "nuc100series.h": "c",
+        "sys_init.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "mylib.h": "c",
+        "spi.h": "c",
+        "mcu_init.h": "c",
+        "font8x16.h": "c",
+        "stdbool.h": "c",
+        "core_cm0.h": "c",
+        "tft8x16.h": "c",
+        "greenman.h": "c",
+        "diskio.h": "c",
+        "sdcard.h": "c",
+        "sys.h": "c",
+        "sdcard_new.h": "c"
+    }
+}

@@ -1,0 +1,27 @@
+# uVision Project files
+*.opt
+*.uvopt
+*.uvoptx
+*.uvgui
+*.uvgui.*
+*.uvguix.*
+
+# Generated output files
+obj/
+lst/
+
+# Listing files
+*.cod
+*.htm
+*.i
+*.lst
+*.map
+*.m51
+*.m66
+*.scr
+*.scvd
+
+# Personal
+audio_sample/
+microcomputer_Audio_Player_Project.code-workspace
+TODO.md
