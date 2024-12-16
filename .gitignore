@@ -22,6 +22,6 @@ lst/
 *.scvd
 
 # Personal
-audio_sample/
+# audio_sample/
 microcomputer_Audio_Player_Project.code-workspace
 TODO.md

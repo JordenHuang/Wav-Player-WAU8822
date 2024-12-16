@@ -185,8 +185,9 @@ void WAU8822_Setup(void)
  	I2C_WriteWAU8822(54, 0x139);	// LSPKOUT Volume
 	I2C_WriteWAU8822(55, 0x139);	// RSPKOUT Volume
 
-    GPIO_SetMode(PE, BIT14, GPIO_MODE_OUTPUT);
+    GPIO_SetMode(PE, BIT14 | BIT15, GPIO_MODE_OUTPUT);
     PE14 = 0;
+    PE15 = 0;
 
     DEBUG_PRINTF("[OK]\n");
 }
