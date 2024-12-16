@@ -183,7 +183,7 @@ void I2S_IRQHandler(void)
     uint32_t u32status;
     uint32_t u32data;
     // uint16_t u16data;
-    uint8_t i;
+    uint32_t i;
     u32status = I2S_GET_INT_FLAG(I2S, I2S_STATUS_TXTHF_Msk | I2S_STATUS_RXTHF_Msk);
 
     // I2S TX threshold interrupt
@@ -197,7 +197,7 @@ void I2S_IRQHandler(void)
                     pcm_buffer_idx += 1;
                     wav_header.data_chunk_size -= 2;
                 } else if (wav_header.num_of_channels == 2) {
-                    // FIXME: I think it's wrong
+                    // FIXME: I'm not sure if it's wrong
                     if (wav_header.block_align == 4) {
                         u32data = pcm_buffer[pcm_buffer_idx] << 16 | pcm_buffer[pcm_buffer_idx + 1];
                         pcm_buffer_idx += 2;
@@ -224,62 +224,61 @@ void I2S_IRQHandler(void)
 
         // Mode playback
         // From https://github.com/OpenNuvoton/NUC472_442BSP/blob/master/SampleCode/StdDriver/I2S_NAU8822/nuc472_442_isr.c
-        // else if (pgm_state == P_MODE_PLAYBACK) {
-        //     uint32_t u32Len;
-        //     uint16_t *pBuffTx = &pcm_buffer[0];
-        //     // Read Tx FIFO free size
-        //     u32Len = 8 - I2S_GET_TX_FIFO_LEVEL(I2S);
+        else if (pgm_state == P_MODE_PLAYBACK) {
+            uint32_t u32Len;
+            uint16_t *pBuffTx = &pcm_buffer[0];
+            // Read Tx FIFO free size
+            u32Len = 8 - I2S_GET_TX_FIFO_LEVEL(I2S);
 
-        //     if (pcm_buffer_idx >= 8) {
-        //         for (i = 0; i < u32Len; ++i) {
-        //             u32data = (pBuffTx[i] << 16) | pBuffTx[i];
-        //             I2S_WRITE_TX_FIFO(I2S, u32data);
-        //         }
+            if (pcm_buffer_idx >= 8) {
+                for (i = 0; i < u32Len; ++i) {
+                    u32data = (pBuffTx[i] << 16) | pBuffTx[i];
+                    I2S_WRITE_TX_FIFO(I2S, u32data);
+                    DEBUG_PRINTF("dt:%d\n", u32data);
+                }
 
-        //         for (i = 0; i < PCM_BUFF_SIZE - u32Len; ++i) {
-        //             pBuffTx[i] = pBuffTx[i + u32Len];
-        //         }
+                for (i = 0; i < PCM_BUFF_SIZE - u32Len; ++i) {
+                    pBuffTx[i] = pBuffTx[i + u32Len];
+                }
 
-        //         pcm_buffer_idx -= u32Len;
-        //     DEBUG_PRINTF("\nT%d\n", pcm_buffer_idx);
-        //     } else {
-        //         for (i = 0; i < u32Len; i++) {
-        //             I2S_WRITE_TX_FIFO(I2S, 0x00000000);
-        //         }
-        //     I2S_DisableInt(I2S, I2S_IE_TXTHIE_Msk);
-        //     I2S_DISABLE_TX(I2S);
-        //     }
-        // }
+                pcm_buffer_idx -= u32Len;
+            DEBUG_PRINTF("\nT%8x\n", pcm_buffer_idx);
+            } else {
+                for (i = 0; i < u32Len; i++) {
+                    I2S_WRITE_TX_FIFO(I2S, 0x00000000);
+                }
+            // I2S_DisableInt(I2S, I2S_IE_TXTHIE_Msk);
+            }
+        }
     }
 
     // I2S RX threshold interrupt
-    // if (u32status & I2S_STATUS_RXTHF_Msk) {
-    //     if (pgm_state == P_MODE_PLAYBACK) {
-    //         uint32_t u32Len;
-    //         uint16_t* pBuffRx = &pcm_buffer[pcm_buffer_idx];
+    if (u32status & I2S_STATUS_RXTHF_Msk) {
+        if (pgm_state == P_MODE_PLAYBACK) {
+            uint32_t u32Len;
+            uint16_t *pBuffRx = &pcm_buffer[pcm_buffer_idx];
 
-    //         if (pcm_buffer_idx < (PCM_BUFF_SIZE - 8)) {
-    //         // if (pcm_buffer_idx < (PCM_BUFF_SIZE - 8)) {
-    //             /* Read Rx FIFO Level */
-    //             u32Len = I2S_GET_RX_FIFO_LEVEL(I2S);
+            if (pcm_buffer_idx < (PCM_BUFF_SIZE - 8)) {
+                /* Read Rx FIFO Level */
+                u32Len = I2S_GET_RX_FIFO_LEVEL(I2S);
 
-    //             for (i = 0; i < u32Len; i++) {
-    //                 pBuffRx[i] = I2S_READ_RX_FIFO(I2S) & 0x0000FFFF;
-    //             }
+                for (i = 0; i < u32Len; i++) {
+                    pBuffRx[i] = I2S_READ_RX_FIFO(I2S) & 0x0000FFFF;
+                    DEBUG_PRINTF("R:%8x\n", pBuffRx[i]);
+                }
 
-    //             pcm_buffer_idx += u32Len;
-    //         DEBUG_PRINTF("\nR%d\n", pcm_buffer_idx);
+                pcm_buffer_idx += u32Len;
+            DEBUG_PRINTF("\nR%d\n", pcm_buffer_idx);
 
-    //             if (pcm_buffer_idx >= PCM_BUFF_SIZE) {
-    //                 pcm_buffer_idx = 0;
-    //                 DEBUG_PRINTF("x\n");
-    //             }
-    //         } else {
-    //         I2S_DisableInt(I2S, I2S_IE_RXTHIE_Msk);
-    //         I2S_DISABLE_TX(I2S);
-    //         }
-    //     }
-    // }
+                if (pcm_buffer_idx >= PCM_BUFF_SIZE) {
+                    pcm_buffer_idx = 0;
+                    DEBUG_PRINTF("x\n");
+                }
+            } else {
+            // I2S_DisableInt(I2S, I2S_IE_RXTHIE_Msk);
+            }
+        }
+    }
 
     if (STOP_PLAYING) {
         I2S_DisableInt(I2S, I2S_IE_TXTHIE_Msk | I2S_IE_RXTHIE_Msk);
@@ -316,10 +315,14 @@ int main(void)
     while (1) {
         switch (pgm_state) {
             case P_START:
+#if 0
+                // Skip welcome page to save time, for development
                 pgm_state = P_MODE_SELECT;
+#else
+                pgm_start();
+#endif
                 break;
-                // pgm_start();
-                // break;
+
 
             case P_MODE_SELECT:
                 pgm_mode_selection();
@@ -348,6 +351,8 @@ int main(void)
                 break;
         }
     }
+
+    while (1);
 }
 
 
@@ -380,9 +385,6 @@ void init_audio_stuff(uint32_t sample_rate)
 
     // Sample rate config in I2S doesn't matter, because I2S is in slave mode
     real_sample_rate = I2S_Open(I2S, I2S_MODE_SLAVE, 8000, I2S_DATABIT_16, I2S_STEREO, I2S_FORMAT_I2S);
-    // Not to get input or output at first
-    // I2S_DISABLE_TX(I2S);
-    // I2S_DISABLE_RX(I2S);
     DEBUG_PRINTF("Real I2S sample rate: %d\n", real_sample_rate);
 
     // Set MCLK and enable MCLK
@@ -624,6 +626,7 @@ void pgm_start(void)
     mlh_print_line_lcd_buf(0, 0 * 16, 5, "Usage");
     mlh_print_line_lcd_buf(0, 1 * 16, 8, "     5 to select");
     mlh_print_line_lcd_buf(0, 2 * 16, 8, "     8 to DOWN  ");
+    mlh_print_line_lcd_buf(0, 3*16,   5, "Use INT1 to quit song ");
     mlh_print_line_lcd_buf(0, 3*16+8, 5, "Press any key to start");
     mlh_show_lcd();
     while (1) {
@@ -757,8 +760,10 @@ void pgm_audio_playback(void)
 {
     bool start_flag = true;
     pcm_buffer_idx = 0;
+
     mlh_clear_lcd_buf();
-    // mlh_print_line_lcd_bufk(0, 28, 8, "Press 5 to quit");
+    mlh_print_line_lcd_buf(0, 0 * 16, 8, "Playback mode");
+    mlh_print_line_lcd_buf(0, 2 * 16, 8, "COMING SOON");
     mlh_show_lcd();
 
     DEBUG_PRINTF("\nInit audio stuff\n");
@@ -766,34 +771,33 @@ void pgm_audio_playback(void)
 
     // Enable RX
     I2S_EnableInt(I2S, I2S_IE_RXTHIE_Msk);
-    I2S_ENABLE_RX(I2S);
+    // I2S_ENABLE_RX(I2S);
     // I2S_SET_MONO_RX_CHANNEL(I2S, I2S_MONO_LEFT);
 
     start_count = true;
     while (1) {
-        DEBUG_PRINTF("p%d\n", pcm_buffer_idx);
-        if (pcm_buffer_idx < 8) {
-            I2S_DisableInt(I2S, I2S_IE_TXTHIE_Msk);
-            I2S_DISABLE_TX(I2S);
-                I2S_EnableInt(I2S, I2S_IE_RXTHIE_Msk);
-                I2S_ENABLE_RX(I2S);
+        // if (pcm_buffer_idx < 8) {
+        //     I2S_DisableInt(I2S, I2S_IE_TXTHIE_Msk);
+        //     I2S_DISABLE_TX(I2S);
+        //         I2S_EnableInt(I2S, I2S_IE_RXTHIE_Msk);
+        //         I2S_ENABLE_RX(I2S);
 
-        }
-        else if (pcm_buffer_idx >= PCM_BUFF_SIZE-8) {
-            I2S_DisableInt(I2S, I2S_IE_RXTHIE_Msk);
-            I2S_DISABLE_RX(I2S);
-                I2S_EnableInt(I2S, I2S_IE_TXTHIE_Msk);
-                I2S_ENABLE_TX(I2S);
-        }
-        // if (start_flag) {
-        //     /* Enable I2S Tx function to send data when data in the buffer is more than half of buffer size */
-        //     if (pcm_buffer_idx >= PCM_BUFF_SIZE / 2) {
+        // }
+        // else if (pcm_buffer_idx >= PCM_BUFF_SIZE-8) {
+        //     I2S_DisableInt(I2S, I2S_IE_RXTHIE_Msk);
+        //     I2S_DISABLE_RX(I2S);
         //         I2S_EnableInt(I2S, I2S_IE_TXTHIE_Msk);
         //         I2S_ENABLE_TX(I2S);
-        //         start_flag = false;
-        //         DEBUG_PRINTF("e\n");
-        //     }
         // }
+        if (start_flag) {
+            /* Enable I2S Tx function to send data when data in the buffer is more than half of buffer size */
+            if (pcm_buffer_idx >= PCM_BUFF_SIZE / 2) {
+                I2S_EnableInt(I2S, I2S_IE_TXTHIE_Msk);
+                I2S_ENABLE_TX(I2S);
+                start_flag = false;
+                DEBUG_PRINTF("e\n");
+            }
+        }
 
         if (STOP_PLAYING) {
             break;

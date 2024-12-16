@@ -149,25 +149,26 @@ void WAU8822_Setup(void)
     I2C_WriteWAU8822(0,  0x000);   /* Reset all registers */
     RoughDelay(0x200);
 
+#if 1
 	I2C_WriteWAU8822(1,  0x02F);        
 	I2C_WriteWAU8822(2,  0x1B3);	// Enable L/R Headphone, ADC Mix/Boost, ADC
     I2C_WriteWAU8822(3,  0x07F);   /* Enable L/R main mixer, DAC */
     I2C_WriteWAU8822(4,  0x010);   /* 16-bit word length, I2S format, Stereo */
     I2C_WriteWAU8822(5,  0x000);   /* Companding control and loop back mode (all disable) */
 
-#if(PLAY_RATE == 48000)
-    I2C_WriteWAU8822(6,  0x14D);   /* Divide by 2, 48K */
-    I2C_WriteWAU8822(7,  0x000);   /* 48K for internal filter coefficients */
-#elif(PLAY_RATE == 32000)
-    I2C_WriteWAU8822(6,  0x16D);   /* Divide by 3, 32K */
-    I2C_WriteWAU8822(7,  0x002);   /* 32K for internal filter coefficients */
-#elif(PLAY_RATE == 16000)
-    I2C_WriteWAU8822(6,  0x1AD);   /* Divide by 6, 16K */
-    I2C_WriteWAU8822(7,  0x006);   /* 16K for internal filter coefficients */
-#else
-    I2C_WriteWAU8822(6,  0x1ED);   /* Divide by 12, 8K */
-    I2C_WriteWAU8822(7,  0x00A);   /* 8K for internal filter coefficients */
-#endif
+    #if(PLAY_RATE == 48000)
+        I2C_WriteWAU8822(6,  0x14D);   /* Divide by 2, 48K */
+        I2C_WriteWAU8822(7,  0x000);   /* 48K for internal filter coefficients */
+    #elif(PLAY_RATE == 32000)
+        I2C_WriteWAU8822(6,  0x16D);   /* Divide by 3, 32K */
+        I2C_WriteWAU8822(7,  0x002);   /* 32K for internal filter coefficients */
+    #elif(PLAY_RATE == 16000)
+        I2C_WriteWAU8822(6,  0x1AD);   /* Divide by 6, 16K */
+        I2C_WriteWAU8822(7,  0x006);   /* 16K for internal filter coefficients */
+    #else
+        I2C_WriteWAU8822(6,  0x1ED);   /* Divide by 12, 8K */
+        I2C_WriteWAU8822(7,  0x00A);   /* 8K for internal filter coefficients */
+    #endif
 
 	I2C_WriteWAU8822(10, 0x008);	// DAC softmute is disabled, DAC oversampling rate is 128x
 	I2C_WriteWAU8822(14, 0x108);	// ADC HP filter is disabled, ADC oversampling rate is 128x
@@ -175,15 +176,35 @@ void WAU8822_Setup(void)
 	I2C_WriteWAU8822(16, 0x1EF);	// ADC right digital volume control
 	I2C_WriteWAU8822(43, 0x010);   
 	I2C_WriteWAU8822(44, 0x000);	// LLIN/RLIN is not connected to PGA
-	I2C_WriteWAU8822(45, 0x150);	// LLIN connected, and its Gain value
-	I2C_WriteWAU8822(46, 0x150);	// RLIN connected, and its Gain value
+	// I2C_WriteWAU8822(45, 0x150);	// LLIN connected, and its Gain value
+	// I2C_WriteWAU8822(46, 0x150);	// RLIN connected, and its Gain value
 	I2C_WriteWAU8822(47, 0x007);	// LLIN connected, and its Gain value
 	I2C_WriteWAU8822(48, 0x007);	// RLIN connected, and its Gain value
-	I2C_WriteWAU8822(49, 0x047);
-	I2C_WriteWAU8822(50, 0x001);	// Left DAC connected to LMIX
-	I2C_WriteWAU8822(51, 0x000);	// Right DAC connected to RMIX
+	// I2C_WriteWAU8822(49, 0x047);
+	I2C_WriteWAU8822(49, 0x0F7);
+	// I2C_WriteWAU8822(50, 0x001);	// Left DAC connected to LMIX
+	// I2C_WriteWAU8822(51, 0x001);	// Right DAC connected to RMIX
  	I2C_WriteWAU8822(54, 0x139);	// LSPKOUT Volume
 	I2C_WriteWAU8822(55, 0x139);	// RSPKOUT Volume
+#else
+    I2C_WriteWAU8822(1,  0x02F);
+    I2C_WriteWAU8822(2,  0x1B3);   /* Enable L/R Headphone, ADC Mix/Boost, ADC */
+    I2C_WriteWAU8822(3,  0x07F);   /* Enable L/R main mixer, DAC */
+    I2C_WriteWAU8822(4,  0x010);   /* 16-bit word length, I2S format, Stereo */
+    I2C_WriteWAU8822(5,  0x000);   /* Companding control and loop back mode (all disable) */
+    I2C_WriteWAU8822(6,  0x1AD);   /* Divide by 6, 16K */
+    I2C_WriteWAU8822(7,  0x006);   /* 16K for internal filter coefficients */
+    I2C_WriteWAU8822(10, 0x008);   /* DAC soft mute is disabled, DAC oversampling rate is 128x */
+    I2C_WriteWAU8822(14, 0x108);   /* ADC HP filter is disabled, ADC oversampling rate is 128x */
+    I2C_WriteWAU8822(15, 0x1EF);   /* ADC left digital volume control */
+    I2C_WriteWAU8822(16, 0x1EF);   /* ADC right digital volume control */
+
+    I2C_WriteWAU8822(44, 0x000);   /* LLIN/RLIN is not connected to PGA */
+    I2C_WriteWAU8822(47, 0x050);   /* LLIN connected, and its Gain value */
+    I2C_WriteWAU8822(48, 0x050);   /* RLIN connected, and its Gain value */
+    I2C_WriteWAU8822(50, 0x001);   /* Left DAC connected to LMIX */
+    I2C_WriteWAU8822(51, 0x001);   /* Right DAC connected to RMIX */
+#endif
 
     GPIO_SetMode(PE, BIT14 | BIT15, GPIO_MODE_OUTPUT);
     PE14 = 0;
