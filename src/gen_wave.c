@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define WRITE_WAV_OUT 1
+#define WRITE_WAV_OUT 0
 #if (WRITE_WAV_OUT == 1)
 #include "./wave_file.txt"
 #endif // (WRITE_WAV_OUT == 1)
@@ -12,7 +12,7 @@
 // #define FREQUENCY 523      // Frequency of the sine wave (Hz)
 // #define AMPLITUDE 32767    // Max amplitude for 16-bit audio
 #define SAMPLE_RATE 8192  // Standard sample rate
-#define DURATION 0.5         // Duration in seconds
+#define DURATION 5         // Duration in seconds
 #define FREQUENCY 523      // Frequency of the sine wave (Hz)
 #define AMPLITUDE 32767    // Max amplitude for 16-bit audio
 

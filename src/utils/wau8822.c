@@ -5,6 +5,7 @@
 #include "NVT_I2C.h"
 
 #include "wau8822.h"
+#include "DEBUG_PRINTF.h"
 
 /*---------------------------------------------------------------------------------------------------------*/
 /*  Write 9-bit data to 7-bit address register of WAU8822 with I2C0                                        */
@@ -45,32 +46,30 @@ static void RoughDelay(uint32_t t)
 
 void WAU8822_ConfigSampleRate(uint32_t u32SampleRate)
 {
-    printf("[NAU8822] Configure Sampling Rate to %d\n", u32SampleRate);
+    DEBUG_PRINTF("[NAU8822] Configure Sampling Rate to %d\n", u32SampleRate);
 
-    if((u32SampleRate % 8) == 0)
-    {
+    if((u32SampleRate % 8) == 0) {
         I2C_WriteWAU8822(36, 0x008);    //12.288Mhz
         I2C_WriteWAU8822(37, 0x00C);
         I2C_WriteWAU8822(38, 0x093);
         I2C_WriteWAU8822(39, 0x0E9);
-    }
-    else if(u32SampleRate == 44100)
-    {
-        I2C_WriteWAU8822(36, 0x007);    //11.2896Mhz, for 44.1k
-        I2C_WriteWAU8822(37, 0x021);
-        I2C_WriteWAU8822(38, 0x161);
-        I2C_WriteWAU8822(39, 0x026);
-    }
-    else
-    {
+    } else if(u32SampleRate == 44100) {
+        // I2C_WriteWAU8822(36, 0x007);    //11.2896Mhz, for 44.1k
+        // I2C_WriteWAU8822(37, 0x021);
+        // I2C_WriteWAU8822(38, 0x161);
+        // I2C_WriteWAU8822(39, 0x026);
+        I2C_WriteWAU8822(36, 0x008);    //12.288Mhz
+        I2C_WriteWAU8822(37, 0x00C);
+        I2C_WriteWAU8822(38, 0x093);
+        I2C_WriteWAU8822(39, 0x0E9);
+    } else {
         I2C_WriteWAU8822(36, 0x00B);    //16.934Mhz
         I2C_WriteWAU8822(37, 0x011);
         I2C_WriteWAU8822(38, 0x153);
         I2C_WriteWAU8822(39, 0x1F0);
     }
 
-    switch (u32SampleRate)
-    {
+    switch (u32SampleRate) {
     case 16000:
         I2C_WriteWAU8822(6, 0x1AD);   /* Divide by 6, 16K */
         I2C_WriteWAU8822(7, 0x006);   /* 16K for internal filter cofficients */
@@ -82,22 +81,21 @@ void WAU8822_ConfigSampleRate(uint32_t u32SampleRate)
         break;
 
     case 44100:
-    printf("config 44100\n");
         // duriation super long
         // I2C_WriteWAU8822(6, 0x1C7); // PLL divide by 4 for 44.1 kHz
         // I2C_WriteWAU8822(7, 0x000); // Internal filter coefficients
 
         // weird sound, and a little longer than 5 seconds (Do_5sec.wav)
-        // I2C_WriteWAU8822(6, 0x14D);    /* Divide by 1, 48K */
-        // I2C_WriteWAU8822(7, 0x000);    /* 48K for internal filter cofficients */
+        I2C_WriteWAU8822(6, 0x14D);    /* Divide by 1, 48K */
+        I2C_WriteWAU8822(7, 0x000);    /* 48K for internal filter cofficients */
 
         // slow
         // I2C_WriteWAU8822(6, 0x187); // PLL divider for 44.1 kHz
         // I2C_WriteWAU8822(7, 0x000); // Filter coefficients for 44.1 kHz
 
         // slow
-        I2C_WriteWAU8822(6, 0x16D);    /* Divide by 3, 32K */
-        I2C_WriteWAU8822(7, 0x002);    /* 32K for internal filter cofficients */
+        // I2C_WriteWAU8822(6, 0x16D);    /* Divide by 3, 32K */
+        // I2C_WriteWAU8822(7, 0x002);    /* 32K for internal filter cofficients */
         break;
 
     case 48000:
@@ -110,7 +108,7 @@ void WAU8822_ConfigSampleRate(uint32_t u32SampleRate)
         break;
 
     case 22050:
-        // I2C_WriteWAU8822(6, 0x1AD);    /* Divide by 6 */
+        I2C_WriteWAU8822(6, 0x1AD);    /* Divide by 6 */
         // I2C_WriteWAU8822(7, 0x006);    /* 16K for internal filter cofficients */
 
         // slow
@@ -126,8 +124,9 @@ void WAU8822_ConfigSampleRate(uint32_t u32SampleRate)
         // I2C_WriteWAU8822(7, 0x002);    /* 32K for internal filter cofficients */
 
         // Ok
-        I2C_WriteWAU8822(6, 0x187); // PLL divider for 44.1 kHz
-        I2C_WriteWAU8822(7, 0x000); // Filter coefficients for 44.1 kHz
+        // I2C_WriteWAU8822(6, 0x185); // PLL divider for 44.1 kHz, divide by 4
+        // I2C_WriteWAU8822(6, 0x181); // PLL divider for 44.1 kHz, divide by 4
+        // I2C_WriteWAU8822(7, 0x00A); // Filter coefficients for 44.1 kHz
         break;
 
     case 192000:
@@ -144,9 +143,8 @@ void WAU8822_ConfigSampleRate(uint32_t u32SampleRate)
 
 void WAU8822_Setup(void)
 {
-#if 1
     //uint32_t i;
-    printf("\nConfigure WAU8822 ...");
+    DEBUG_PRINTF("\nConfigure WAU8822 ...");
 
     I2C_WriteWAU8822(0,  0x000);   /* Reset all registers */
     RoughDelay(0x200);
@@ -190,45 +188,13 @@ void WAU8822_Setup(void)
     GPIO_SetMode(PE, BIT14, GPIO_MODE_OUTPUT);
     PE14 = 0;
 
-    printf("[OK]\n");
-#else
-printf("\nConfigure WAU8822 ...");
-
-    I2C_WriteWAU8822(0,  0x000);   /* Reset all registers */
-    RoughDelay(0x200);
-
-    I2C_WriteWAU8822(1,  0x02F);
-    I2C_WriteWAU8822(2,  0x1B3);   /* Enable L/R Headphone, ADC Mix/Boost, ADC */
-    I2C_WriteWAU8822(3,  0x07F);   /* Enable L/R main mixer, DAC */
-
-    // offset: 0x4 => default, 24bit, I2S format, Stereo
-    I2C_WriteWAU8822(4,  0x010);   /* 16-bit word length, I2S format, Stereo */
-
-    I2C_WriteWAU8822(5,  0x000);   /* Companding control and loop back mode (all disable) */
-    I2C_WriteWAU8822(6,  0x1AD);   /* Divide by 6, 16K */
-    I2C_WriteWAU8822(7,  0x006);   /* 16K for internal filter coefficients */
-    I2C_WriteWAU8822(10, 0x008);   /* DAC soft mute is disabled, DAC oversampling rate is 128x */
-    I2C_WriteWAU8822(14, 0x108);   /* ADC HP filter is disabled, ADC oversampling rate is 128x */
-    I2C_WriteWAU8822(15, 0x1EF);   /* ADC left digital volume control */
-    I2C_WriteWAU8822(16, 0x1EF);   /* ADC right digital volume control */
-
-    I2C_WriteWAU8822(11, 0x1CF);   /* DAC left digital volume control */
-    I2C_WriteWAU8822(12, 0x1CF);   /* DAC right digital volume control */
-
-    I2C_WriteWAU8822(44, 0x000);   /* LLIN/RLIN is not connected to PGA */
-    I2C_WriteWAU8822(47, 0x050);   /* LLIN connected, and its Gain value */
-    I2C_WriteWAU8822(48, 0x050);   /* RLIN connected, and its Gain value */
-    I2C_WriteWAU8822(50, 0x001);   /* Left DAC connected to LMIX */
-    I2C_WriteWAU8822(51, 0x001);   /* Right DAC connected to RMIX */
-
-    printf("[OK]\n");
-#endif
+    DEBUG_PRINTF("[OK]\n");
 }
 
 void Init_I2C(void)
 {
     I2C_Open(I2C0, I2C0_CLOCK_FREQUENCY);
-    printf("I2C0 clock %d Hz\n", I2C_GetBusClockFreq(I2C0)); // get I2C0 clock
+    DEBUG_PRINTF("I2C0 clock %d Hz\n", I2C_GetBusClockFreq(I2C0)); // get I2C0 clock
 
     /* Set I2C3 4 Slave Addresses */
     // I2C_SetSlaveAddr(I2C0, 0, 0x15, I2C_GCMODE_DISABLE);   /* Slave Address : 0x15 */

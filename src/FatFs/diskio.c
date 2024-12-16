@@ -13,6 +13,7 @@
 #include "ff.h"         /* Obtains integer types */
 #include "diskio.h"     /* Declarations of disk functions */
 #include "sdcard_new.h"
+#include "DEBUG_PRINTF.h"
 
 
 static void RoughDelay(uint32_t t)
@@ -57,7 +58,7 @@ DSTATUS disk_initialize(
     /* Card detect pin is PC.14. */
     GPIO_SetMode(PD, BIT13, GPIO_PMD_INPUT);
 
-    printf("Check SD Card insert ?\n");
+    DEBUG_PRINTF("Check SD Card insert ?\n");
 
     /* Waiting for card is inserted */
     while (PD13 == 1)
@@ -68,7 +69,7 @@ DSTATUS disk_initialize(
 
     if (PD13 != 1)
     {
-        printf("Card Detected!!\n");
+        DEBUG_PRINTF("Card Detected!!\n");
 
         /* Power pin is PC.15. */
         GPIO_SetMode(PD, BIT12, GPIO_PMD_OUTPUT);
@@ -80,17 +81,17 @@ DSTATUS disk_initialize(
         if (SDCARD_Open() == SD_SUCCESS)
         {
             sta =   RES_OK;
-            printf("SDCard Open success\n");
+            DEBUG_PRINTF("SDCard Open success\n");
         }
         else
         {
             sta = STA_NOINIT;
-            printf("SDCard Open failed\n");
+            DEBUG_PRINTF("SDCard Open failed\n");
         }
     }
     else
     {
-        printf("Can't detect card !!\n");
+        DEBUG_PRINTF("Can't detect card !!\n");
         sta = STA_NOINIT;
     }
 

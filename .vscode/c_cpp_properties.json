@@ -10,6 +10,8 @@
                 "${workspaceFolder}/Library/Device/Nuvoton/NUC100Series/Include",
                 "${workspaceFolder}/Library/Nu-LB-NUC140/Include",
                 "${workspaceFolder}/",
+
+                "${workspaceFolder}/src",
                 "${workspaceFolder}/src/FatFs",
                 "${workspaceFolder}/src/utils"
             ],
