@@ -1,3 +1,8 @@
+/**
+ * @brief Functions for parsing the wav file header
+ * @author Jorden Huang
+ */
+
 #ifndef _WAV_LIB_
 #define _WAV_LIB_
 

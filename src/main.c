@@ -124,6 +124,11 @@ void pgm_audio_playback(void);
 /* -------------------- */
 // Extenal INT 1 functions
 /* -------------------- */
+
+/**
+ * @brief IRQ handler for external interrupt
+ * @details For stop and quit the song when the song is playing
+ */
 void EINT1_IRQHandler(void)
 {
     GPIO_CLR_INT_FLAG(PB, BIT15); // Clear GPIO interrupt flag
@@ -146,6 +151,11 @@ void Init_EXTINT(void)
 /* -------------------- */
 // Timer 0 functions
 /* -------------------- */
+
+/**
+ * @brief IRQ handler for timer 0
+ * @details Counting time, like how long the audio played, or the 7seg effect
+ */
 void TMR0_IRQHandler(void)
 {
     TIMER_ClearIntFlag(TIMER0); // Clear Timer0 time-out interrupt flag
@@ -178,6 +188,10 @@ void Init_Timer0(void)
 /* -------------------- */
 // I2S IRQ handler, to send data to WAU8822
 /* -------------------- */
+/**
+ * @brief IRQ handler for I2S
+ * @details send and recieve data to or from I2S, in modes like audio player, playback .etc
+ */
 void I2S_IRQHandler(void)
 {
     uint32_t u32status;
@@ -280,6 +294,7 @@ void I2S_IRQHandler(void)
         }
     }
 
+    // Quit song
     if (STOP_PLAYING) {
         I2S_DisableInt(I2S, I2S_IE_TXTHIE_Msk | I2S_IE_RXTHIE_Msk);
         return;
@@ -296,6 +311,7 @@ int main(void)
 
     SYS_Init();
 
+    // Init perhepherial hardwares
     mlh_init_GPIO_for_led();
     mlh_init_7seg();
     mlh_init_keypad_INT();
@@ -305,13 +321,14 @@ int main(void)
     Init_Timer0();
 
     DEBUG_PRINTF("\nInit sd card\n");
-    // First init sd card
+    // First init sd card, TODO: If no sd card inserted, only enables playback mode
     init_sdcard_stuff();
 
     // 7seg effect
     mlh_regist_new_pattern_to_SEG_BUF(17, mlh_pattern_to_7seg_pattern(0xFD));
     seg_effect = true;
 
+    // State machine
     while (1) {
         switch (pgm_state) {
             case P_START:
@@ -322,7 +339,6 @@ int main(void)
                 pgm_start();
 #endif
                 break;
-
 
             case P_MODE_SELECT:
                 pgm_mode_selection();
@@ -359,6 +375,11 @@ int main(void)
 /* -------------------- */
 // Functions related to the hardware
 /* -------------------- */
+
+/**
+ * @brief Initialize I2C, WAU8822, I2S
+ * @param sample_rate Sample rate of the audio, to config WAU8822
+ */
 void init_audio_stuff(uint32_t sample_rate)
 {
     uint32_t real_sample_rate;
@@ -398,6 +419,9 @@ void init_audio_stuff(uint32_t sample_rate)
     DEBUG_PRINTF("I2S IE: 0x%X\n", I2S->IE);
 }
 
+/**
+ * @brief Initialize SPI and sd card
+ */
 void init_sdcard_stuff(void)
 {
     WORD rc;
@@ -412,6 +436,10 @@ void init_sdcard_stuff(void)
     f_mount(&FatFs[0], (TCHAR*)mount_path, 1);
 }
 
+/**
+ * @brief Result type when opening file
+ * @param rc The result
+ */
 void put_rc(FRESULT rc)
 {
     const TCHAR *p =
@@ -429,6 +457,12 @@ void put_rc(FRESULT rc)
     DEBUG_PRINTF(_T("rc=%u FR_%s\n"), (UINT)rc, p);
 }
 
+/**
+ * @brief To open wav file
+ * @param fp[in] file pointer
+ * @param file_path[in] file path
+ * @param header[out] Pointer to the destination to store the wav file header infomations
+ */
 void open_wav_file(FIL *fp, const char *file_path, wav_header_t *header)
 {
     uint32_t status;
@@ -479,11 +513,19 @@ void open_wav_file(FIL *fp, const char *file_path, wav_header_t *header)
     DEBUG_PRINTF("[INFO] Wav header successfully parsed\n");
 }
 
+/**
+ * @brief Close the file
+ * @param fp File pointer
+ */
 void close_wav_file(FIL *fp)
 {
     f_close(fp);
 }
 
+/**
+ * @brief Start to play the song after opening the file and config the WAU8822
+ * @param fp File pointer, to the wav file
+ */
 void start_play(FIL *fp)
 {
     // Move to start of the sound data
@@ -536,6 +578,12 @@ unsigned long get_fattime(void)
 /* -------------------- */
 // Functions related to the program utility
 /* -------------------- */
+
+/**
+ * @brief Shows the songs to the LCD for selection
+ * @param idx index in the songs array
+ * @param line line on the lcd
+ */
 void show_song_menu(uint16_t idx, uint16_t line)
 { // TODO: top line shows "Song selection", only when 0 <= idx <= 2 ,(only shows 3 lines of option)
     uint16_t i;
@@ -552,6 +600,10 @@ void show_song_menu(uint16_t idx, uint16_t line)
     mlh_show_lcd();
 }
 
+/**
+ * @brief Shows modes for selection on LCD
+ * @param idx index of the mode array
+ */
 void show_mode_menu(uint16_t idx)
 {
     uint16_t i, offset = 8;
@@ -566,45 +618,13 @@ void show_mode_menu(uint16_t idx)
     mlh_show_lcd();
 }
 
-/* Concept 1, font size 8
-    1234567890123456
-1|   WAV PLAYER   
-2|2:UP     Author:
-3|5:select  Jorden
-4|8:DOWN    Huang 
-*/
-
-/* Concept 2, font size 5
-    123456789012345678901
-1|     WAV PLAYER
-2|Author: Jorden Huang
-3|Mode > Audio player
-4|     > Sound playback
-5|     > Recorder
-6|Usage: 2 to UP
-7|       5 to select
-8|       8 to DOWN
-*/
-
-/* Concept 3-1, font size 8 (and 5)
-    1234567890123456
-1|   WAV PLAYER
-2|Author                        // (font size 8)
-3|    Jorden Huang              // (font size 8)
-4|Press any key to continue...  // (font size 5)
-*/
-
-/* Concept 3-2, font size 8 (and 5)
-    1234567890123456
-1|Usage:                    // (font size 5)
-1|     2 to UP             // (font size 8)
-2|     5 to select         // (font size 8)
-3|     8 to DOWN           // (font size 8)
-4|Press any key to start    // (font size 5)
-*/
+/**
+ * @brief Messages to show when the program starts
+ * @details Shows the program name, author, and the usage
+ */
 void pgm_start(void)
 {// Show info
-    // Concept 3-1
+    // Show program name
     mlh_print_line_lcd_buf(0, 0 * 16, 8, "   WAV PLAYER   ");
     mlh_print_line_lcd_buf(0, 1 * 16, 8, "Author          ");
     mlh_print_line_lcd_buf(0, 2 * 16, 8, "    Jorden Huang");
@@ -621,7 +641,7 @@ void pgm_start(void)
     }
     mlh_clear_lcd_buf();
 
-    // Concept 3-2
+    // Show usage
     mlh_print_line_lcd_buf(0, 0 * 16, 8, "     2 to UP    ");
     mlh_print_line_lcd_buf(0, 0 * 16, 5, "Usage");
     mlh_print_line_lcd_buf(0, 1 * 16, 8, "     5 to select");
@@ -643,6 +663,9 @@ void pgm_start(void)
     pgm_state = P_MODE_SELECT;
 }
 
+/**
+ * @brief Hanlder the mode selection
+ */
 void pgm_mode_selection(void)
 {
     int16_t idx = 0;
@@ -678,6 +701,10 @@ void pgm_mode_selection(void)
     }
 }
 
+/**
+ * @brief State handler for audio player mode
+ * @details Let the user select the song, and play it
+ */
 void pgm_audio_play(void)
 {
     int16_t idx = 0, line = 0;
@@ -756,6 +783,10 @@ void pgm_audio_play(void)
     }
 }
 
+/**
+ * @brief State handler for audio playback mode
+ * @note NOT yet finished
+ */
 void pgm_audio_playback(void)
 {
     bool start_flag = true;

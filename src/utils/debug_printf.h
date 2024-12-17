@@ -1,3 +1,8 @@
+/**
+ * @brief Macros for switch between print or not print the debugging message mode
+ * @author Jorden Huang
+ */
+
 #ifndef _DEBUG_PRINT_H_
 #define _DEBUG_PRINT_H_
 

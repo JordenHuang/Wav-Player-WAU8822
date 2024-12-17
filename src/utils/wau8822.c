@@ -44,6 +44,10 @@ static void RoughDelay(uint32_t t)
     while(delay-- >= 0);
 }
 
+/**
+ * @brief Configure WAU8822 base on the sample rate
+ * @param u32SampleRate 
+ */
 void WAU8822_ConfigSampleRate(uint32_t u32SampleRate)
 {
     DEBUG_PRINTF("[NAU8822] Configure Sampling Rate to %d\n", u32SampleRate);
@@ -141,6 +145,9 @@ void WAU8822_ConfigSampleRate(uint32_t u32SampleRate)
     }
 }
 
+/**
+ * @brief Set up WAU8822 codec
+ */
 void WAU8822_Setup(void)
 {
     //uint32_t i;
