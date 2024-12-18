@@ -32,7 +32,7 @@
 #define PLAYBACK_SAMPLE_RATE 8192
 
 /* -------------------- */
-// Game state enumeration define and global variable
+// Program state enumeration define and global variable
 /* -------------------- */
 typedef enum Program_State {
     P_START,
@@ -124,7 +124,6 @@ void pgm_audio_playback(void);
 /* -------------------- */
 // Extenal INT 1 functions
 /* -------------------- */
-
 /**
  * @brief IRQ handler for external interrupt
  * @details For stop and quit the song when the song is playing
@@ -151,7 +150,6 @@ void Init_EXTINT(void)
 /* -------------------- */
 // Timer 0 functions
 /* -------------------- */
-
 /**
  * @brief IRQ handler for timer 0
  * @details Counting time, like how long the audio played, or the 7seg effect
@@ -375,7 +373,6 @@ int main(void)
 /* -------------------- */
 // Functions related to the hardware
 /* -------------------- */
-
 /**
  * @brief Initialize I2C, WAU8822, I2S
  * @param sample_rate Sample rate of the audio, to config WAU8822
@@ -578,7 +575,6 @@ unsigned long get_fattime(void)
 /* -------------------- */
 // Functions related to the program utility
 /* -------------------- */
-
 /**
  * @brief Shows the songs to the LCD for selection
  * @param idx index in the songs array
