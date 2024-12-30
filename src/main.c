@@ -64,6 +64,8 @@ BYTE ff_buff[128];
 FATFS FatFs[FF_VOLUMES];
 // Path to mount
 unsigned char mount_path[] = "0:";
+// Flag for SD card detection
+bool HAS_SD_CARD = true;
 
 /* -------------------- */
 // Wav file related global variable
@@ -349,7 +351,15 @@ int main(void)
                 break;
 
             case P_MODE_AUDIO_PLAY:
-                pgm_audio_play();
+                if (HAS_SD_CARD) {
+                    pgm_audio_play();
+                } else {
+                    mlh_clear_lcd_buf();
+                    mlh_print_line_lcd_buf(0, 0, 8, "Please insert");
+                    mlh_print_line_lcd_buf(0, 16, 8, "SD card");
+                    mlh_print_line_lcd_buf(0, 16*2, 8, "and restart");
+                    mlh_show_lcd();
+                }
                 break;
 
             case P_MODE_PLAYBACK:
@@ -357,11 +367,19 @@ int main(void)
                 break;
 
             case P_MODE_AUDIO_RECORDER:
-                mlh_clear_lcd_buf();
-                mlh_print_line_lcd_buf(0, 0 * 16, 8, "Recorder mode");
-                mlh_print_line_lcd_buf(0, 2 * 16, 8, "COMING SOON");
-                mlh_show_lcd();
-                while (1);
+                if (HAS_SD_CARD) {
+                    mlh_clear_lcd_buf();
+                    mlh_print_line_lcd_buf(0, 0 * 16, 8, "Recorder mode");
+                    mlh_print_line_lcd_buf(0, 2 * 16, 8, "COMING SOON");
+                    mlh_show_lcd();
+                    while (1);
+                } else {
+                    mlh_clear_lcd_buf();
+                    mlh_print_line_lcd_buf(0, 0, 8, "Please insert");
+                    mlh_print_line_lcd_buf(0, 16, 8, "SD card");
+                    mlh_print_line_lcd_buf(0, 16*2, 8, "and restart");
+                    mlh_show_lcd();
+                }
                 break;
         }
     }
@@ -427,6 +445,9 @@ void init_sdcard_stuff(void)
 
     // Prevent compiler warning
     (void)rc;
+    if (rc != RES_OK) {
+        HAS_SD_CARD = false;
+    }
 
     DEBUG_PRINTF("rc=%d\n", rc);
     disk_read(0, ff_buff, 2, 1);
